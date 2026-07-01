@@ -1,18 +1,10 @@
-use crate::units::{Kg, Km};
-
-///Constants of Emissions
-const PETROLCAR: f64 = 0.142253;
-const OILCAR: f64 = 0.169708;
-const BIKE: f64 = 0.00017;
-const ELECTRICBIKE: f64 = 0.001095;
-const ELECTRICCAR: f64 = 0.067365;
-const ELECTRICBUS: f64 = 0.0217;
-const PETROLBUS: f64 = 0.03756;
-const PLANE: f64 = 0.177894;
-const ELECTRICMOTOCYCLE: f64 = 0.059300;
-const PETROLMOTOCYCLE: f64 = 0.076300;
-const HST: f64 = 0.00293; // High Speed Train
-const ERT: f64 = 0.027690; // Extern Region Train
+use crate::model::food::{BEEF, CHEESE, CHICKEN, PASTA, PORK, RICE};
+use crate::model::transport::{
+    BIKE, ELECTRICBIKE, ELECTRICBUS, ELECTRICCAR, ELECTRICMOTOCYCLE, ERT, HST, OILCAR, PETROLBUS,
+    PETROLCAR, PETROLMOTOCYCLE, PLANE,
+};
+use crate::model::{Food, FuelType, Transport};
+use crate::units::Kg;
 
 /// Emission Category
 #[derive(Debug)]
@@ -22,35 +14,9 @@ pub enum Category {
     Energy,
 }
 
-/// Food Category
-#[derive(Debug)]
-pub enum Food {
-    Chicken,
-    Beef,
-    Pork,
-    Vegetables,
-}
-///FuelType
-#[derive(Debug)]
-pub enum FuelType {
-    Petrol,
-    Oil,
-    Electric,
-}
-/// Mean of Transport for a traject
-#[derive(Debug)]
-pub enum Transport {
-    Car { km: Km, fuel: FuelType },
-    Bus { km: Km, fuel: FuelType },
-    Plane { km: Km },
-    Train { km: Km, fuel: FuelType },
-    Bike { km: Km },
-    ElectricBike { km: Km },
-    Motocycle { km: Km, fuel: FuelType },
-}
 /// Emission Source
 pub trait EmissionSource {
-    /// Function transforming a journey to a CO2 emission in KG
+    /// Function transforming an action into a CO2 emission in Kg
     ///
     /// # Parameters :
     /// - ‘self‘ : An Emission Source
@@ -65,6 +31,10 @@ pub trait EmissionSource {
 
 /// Implentinig EmissionSource for Transport according to AGIR
 impl EmissionSource for Transport {
+    /// Determines the CO2 emission for a traject in Kg
+    ///
+    /// # Parameters ;
+    ///  - ‘self‘ : An Emission source
     fn co2_to_kg(&self) -> Kg {
         match self {
             Transport::Car {
@@ -120,7 +90,34 @@ impl EmissionSource for Transport {
             } => Kg(km.0 * HST),
         }
     }
+    /// Category of the Emission : Transport
+    ///
+    /// # Parameter :
+    /// - ‘self‘ : A transport
     fn category(&self) -> Category {
         Category::Transport
+    }
+}
+
+/// Implementing EmissionSource for Food
+impl EmissionSource for Food {
+    /// Emission of CO2 in Kg for a Kg of aliment eaten
+    ///
+    /// # Parameter :
+    /// ‘self‘ : Food aliment
+    fn co2_to_kg(&self) -> Kg {
+        match self {
+            Food::Beef { quantity } => Kg(BEEF * quantity.0),
+            Food::Pork { quantity } => Kg(PORK * quantity.0),
+            Food::Chicken { quantity } => Kg(CHICKEN * quantity.0),
+            Food::Rice { quantity } => Kg(RICE * quantity.0),
+            Food::Cheese { quantity } => Kg(CHEESE * quantity.0),
+            Food::Pasta { quantity } => Kg(PASTA * quantity.0),
+        }
+    }
+
+    /// Category : Food
+    fn category(&self) -> Category {
+        Category::Food
     }
 }
